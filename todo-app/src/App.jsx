@@ -26,6 +26,10 @@ function App() {
     setTasks(prev => prev.map(t => t.id === id ? {...t, completed: !t.completed} : t))
   }
 
+  const deleteTask = (id) => {
+    setTasks(prev => prev.filter(t => t.id !== id))
+  }
+
   const activeCount = tasks.filter(t => !t.completed).length
 
   return (
@@ -63,6 +67,7 @@ function App() {
               <input type="checkbox" checked={t.completed} onChange={() => toggleTask(t.id)} />
               <span>{t.text}</span>
             </label>
+            <button type='button' aria-label='Удалить' onClick={() => deleteTask(t.id)}>x</button>
           </li>
         ))}
       </ul>
