@@ -22,6 +22,10 @@ function App() {
     setText('')
   }
 
+  const toggleTask = (id) => {
+    setTasks(prev => prev.map(t => t.id === id ? {...t, completed: !t.completed} : t))
+  }
+
   const activeCount = tasks.filter(t => !t.completed).length
 
   return (
@@ -56,7 +60,7 @@ function App() {
         (<li className='empty'>Пока задач нет</li>) : tasks.map(t => (
           <li key={t.id} className="todo-item">
             <label>
-              <input type="checkbox" checked={t.completed} readOnly />
+              <input type="checkbox" checked={t.completed} onChange={() => toggleTask(t.id)} />
               <span>{t.text}</span>
             </label>
           </li>
