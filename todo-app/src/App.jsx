@@ -13,6 +13,7 @@ function createTask(text) {
 function App() {
   const [text, setText] = useState('')
   const [tasks, setTasks] = useState([])
+  const [filter, setFilter] = useState('all')
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -29,6 +30,12 @@ function App() {
   const deleteTask = (id) => {
     setTasks(prev => prev.filter(t => t.id !== id))
   }
+
+  const visibleTasks = tasks.filter(t => {
+    if (filter === 'active') return !t.completed
+    if (filter === 'completed') return t.completed
+    return true
+  })
 
   const activeCount = tasks.filter(t => !t.completed).length
 
@@ -52,16 +59,25 @@ function App() {
 
       <section className='todo-controls' aria-label='Фильтры и счетчик'>
         <div className='filters'>
-          <button type='button' disabled>Все</button>
-          <button type='button' disabled>Активные</button>
-          <button type='button' disabled>Выполненные</button>
+          {['all', 'active', 'completed'].map(f => (
+            <button
+              key={f}
+              type='button'
+              className={filter === f ? 'is-active' : ''}
+              aria-pressed={filter === f}
+              onClick={() => setFilter(f)}
+            >
+              {f  === 'all' ? 'Все' : f === 'active' ? 'Активные' : 'Выполненные'}
+            </button>
+          ))
+          }
         </div>
         <div className='counter'>Всего: {tasks.length} • Активных: {activeCount}</div>
       </section>
 
       <ul className='todo-list' aria-live='polite' aria-label='Список задач'>
-        {tasks.length === 0 ? 
-        (<li className='empty'>Пока задач нет</li>) : tasks.map(t => (
+        {visibleTasks.length === 0 ? 
+        (<li className='empty'>Ничего не найдено</li>) : visibleTasks.map(t => (
           <li key={t.id} className="todo-item">
             <label>
               <input type="checkbox" checked={t.completed} onChange={() => toggleTask(t.id)} />
