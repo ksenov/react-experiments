@@ -78,7 +78,7 @@ function App() {
       <ul className='todo-list' aria-live='polite' aria-label='Список задач'>
         {visibleTasks.length === 0 ? 
         (<li className='empty'>Ничего не найдено</li>) : visibleTasks.map(t => (
-          <li key={t.id} className="todo-item">
+          <li key={t.id} className={`todo-item ${t.completed ? 'completed' : ''}`}>
             <label>
               <input type="checkbox" checked={t.completed} onChange={() => toggleTask(t.id)} />
               <span>{t.text}</span>
