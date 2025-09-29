@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { taskAdded, taskToggled, taskDeleted } from './store/tasksSlice'
+import { taskAdded, taskToggled, taskDeleted, fetchTasks } from './store/tasksSlice'
 import { makeSelectVisibleTasks, selectActiveCount, selectTasks } from './store/selectors'
 import './App.css'
 
@@ -16,12 +16,14 @@ function createTask(text) {
 function App() {
   const [text, setText] = useState('')
   const [filter, setFilter] = useState('all')
+
   const dispatch = useDispatch()
   const selectVisible = makeSelectVisibleTasks(filter)
   const tasks = useSelector(selectTasks)
   const visibleTasks = useSelector(state => selectVisible(state))
   const activeCount = useSelector(selectActiveCount)
 
+  useEffect(() => { dispatch(fetchTasks()) }, [dispatch])
 
   const handleSubmit = (e) => {
     e.preventDefault()
