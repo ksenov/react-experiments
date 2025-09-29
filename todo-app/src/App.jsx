@@ -1,4 +1,7 @@
 import { useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { taskAdded, taskToggled, taskDeleted } from './store/tasksSlice'
+import { makeSelectVisibleTasks, selectActiveCount, selectTasks } from './store/selectors'
 import './App.css'
 
 function createTask(text) {
@@ -6,38 +9,35 @@ function createTask(text) {
     id: crypto.randomUUID(),
     text,
     completed: false,
-    createAt: Date.now()
+    createdAt: Date.now()
   }
 }
 
 function App() {
   const [text, setText] = useState('')
-  const [tasks, setTasks] = useState([])
   const [filter, setFilter] = useState('all')
+  const dispatch = useDispatch()
+  const selectVisible = makeSelectVisibleTasks(filter)
+  const tasks = useSelector(selectTasks)
+  const visibleTasks = useSelector(state => selectVisible(state))
+  const activeCount = useSelector(selectActiveCount)
+
 
   const handleSubmit = (e) => {
     e.preventDefault()
     const t = text.trim()
     if (!t) return
-    setTasks(prev => [createTask(t), ...prev])
+    dispatch(taskAdded(createTask(t)))
     setText('')
   }
 
   const toggleTask = (id) => {
-    setTasks(prev => prev.map(t => t.id === id ? {...t, completed: !t.completed} : t))
+    dispatch(taskToggled(id))
   }
 
   const deleteTask = (id) => {
-    setTasks(prev => prev.filter(t => t.id !== id))
+    dispatch(taskDeleted(id))
   }
-
-  const visibleTasks = tasks.filter(t => {
-    if (filter === 'active') return !t.completed
-    if (filter === 'completed') return t.completed
-    return true
-  })
-
-  const activeCount = tasks.filter(t => !t.completed).length
 
   return (
     <main className="app" style={{maxWidth: 720, margin: '40px auto', padding: 16}}>
@@ -47,7 +47,7 @@ function App() {
         <input 
           className="todo-input"
           type="text"
-          placeholder="Новая задача..."
+          placeholder="Новая задача…"
           aria-label="Текст задачи"
           value={text}
           onChange={e => setText(e.target.value)}
@@ -69,8 +69,7 @@ function App() {
             >
               {f  === 'all' ? 'Все' : f === 'active' ? 'Активные' : 'Выполненные'}
             </button>
-          ))
-          }
+          ))}
         </div>
         <div className='counter'>Всего: {tasks.length} • Активных: {activeCount}</div>
       </section>
@@ -83,7 +82,7 @@ function App() {
               <input type="checkbox" checked={t.completed} onChange={() => toggleTask(t.id)} />
               <span>{t.text}</span>
             </label>
-            <button type='button' aria-label='Удалить' onClick={() => deleteTask(t.id)}>x</button>
+            <button type='button' aria-label='Удалить' onClick={() => deleteTask(t.id)}>×</button>
           </li>
         ))}
       </ul>
