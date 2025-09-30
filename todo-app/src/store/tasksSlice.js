@@ -1,0 +1,76 @@
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { getUserId, addTaskRemote, updateTaskRemote, deleteTaskRemote, loadTasksOnce } from '../services/firebase'
+
+export const fetchTasks = createAsyncThunk('tasks/fetch', async () => {
+    const items = await loadTasksOnce()
+    return items
+})
+
+export const addTaskAsync = createAsyncThunk('tasks/add', async (text) => {
+    const uid = await getUserId()
+    return await addTaskRemote(uid, text)
+})
+export const toggleTaskAsync = createAsyncThunk('tasks/toggle', async (id, { getState }) => {
+    const uid = await getUserId()
+    const t = getState().tasks.items.find(x => x.id === id)
+    return await updateTaskRemote(uid, id, { completed: !t.completed })
+})
+export const deleteTaskAsync = createAsyncThunk('tasks/delete', async (id) => {
+    const uid = await getUserId()
+    await deleteTaskRemote(uid, id)
+    return id
+})
+
+const tasksSlice = createSlice({
+    name: 'tasks',
+    initialState: {items: [], status: 'idle', error: null},
+    reducers: {
+        taskAdded: (state, action) => {
+            state.items.unshift(action.payload)
+        },
+        taskToggled: (state, action) => {
+            const t = state.items.find(x => x.id === action.payload)
+            if (t) t.completed = !t.completed
+        },
+        taskDeleted: (state, action) => {
+            state.items = state.items.filter(x => x.id !== action.payload)
+        },
+        taskUpdated: (state, action) => {
+            const {id, changes} = action.payload
+            const t = state.items.find(x => x.id === id)
+            if (t) Object.assign(t, changes)
+        },
+        tasksSet: (state, action) => {state.items = action.payload}
+    },
+    extraReducers: (builder) => {
+    builder
+        .addCase(fetchTasks.pending, (state) => {
+            state.status = 'loading' 
+        })
+        .addCase(fetchTasks.fulfilled, (state, action) => {
+            state.status = 'succeeded'
+            state.items = action.payload
+        })
+        .addCase(fetchTasks.rejected, (state, action) => {
+            state.status = 'failed'
+            state.error = action.error.message
+        })
+        // добавление
+        .addCase(addTaskAsync.fulfilled, (state, action) => {
+            state.items.unshift(action.payload)
+        })
+        // переключение completed
+        .addCase(toggleTaskAsync.fulfilled, (state, action) => {
+            const { id, changes } = action.payload
+            const t = state.items.find(x => x.id === id)
+            if (t) Object.assign(t, changes)
+        })
+        // удаление
+        .addCase(deleteTaskAsync.fulfilled, (state, action) => {
+            state.items = state.items.filter(x => x.id !== action.payload)
+        })
+    }
+})
+
+export const {taskAdded, taskToggled, taskDeleted, taskUpdated, tasksSet} = tasksSlice.actions
+export default tasksSlice.reducer
