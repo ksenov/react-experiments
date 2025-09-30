@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { addTaskAsync, toggleTaskAsync, deleteTaskAsync, fetchTasks } from './store/tasksSlice'
 import { makeSelectVisibleTasks, selectActiveCount, selectTasks } from './store/selectors'
+import { useTranslation } from 'react-i18next'
 import './App.css'
 
 function createTask(text) {
@@ -14,6 +15,8 @@ function createTask(text) {
 }
 
 function App() {
+  const { t, i18n } = useTranslation()
+
   const [text, setText] = useState('')
   const [filter, setFilter] = useState('all')
 
@@ -43,19 +46,25 @@ function App() {
 
   return (
     <main className="app" style={{maxWidth: 720, margin: '40px auto', padding: 16}}>
-      <h1>ToDo</h1>
+      <h1>{t('title')}</h1>
+
+      <div style={{display:'flex', gap:8}}>
+        <button type="button" onClick={() => i18n.changeLanguage('ru')}>RU</button>
+        <button type="button" onClick={() => i18n.changeLanguage('en')}>EN</button>
+      </div>
       
       <form className='todo-form' onSubmit={handleSubmit} aria-label='Создание задачи'>
+
         <input 
           className="todo-input"
           type="text"
-          placeholder="Новая задача…"
+          placeholder={t('placeholder')}
           aria-label="Текст задачи"
           value={text}
           onChange={e => setText(e.target.value)}
         />
         <button className="todo-add" type="submit">
-          Добавить
+          {t('add')}
         </button>
       </form>
 
@@ -69,11 +78,11 @@ function App() {
               aria-pressed={filter === f}
               onClick={() => setFilter(f)}
             >
-              {f  === 'all' ? 'Все' : f === 'active' ? 'Активные' : 'Выполненные'}
+              {f  === 'all' ? t('all') : f === 'active' ? t('active') : t('completed')}
             </button>
           ))}
         </div>
-        <div className='counter'>Всего: {tasks.length} • Активных: {activeCount}</div>
+        <div className='counter'>{t('total')}: {tasks.length} • {t('active_count')}: {activeCount}</div>
       </section>
 
       <ul className='todo-list' aria-live='polite' aria-label='Список задач'>

@@ -1,0 +1,11 @@
+{
+    "title": "ToDo list",
+    "placeholder": "New task…",
+    "add": "Add",
+    "all": "All",
+    "active": "Active",
+    "completed": "Completed",
+    "empty": "Nothing found",
+    "total": "Total",
+    "active_count": "Active"
+}
