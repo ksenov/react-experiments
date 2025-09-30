@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { taskAdded, taskToggled, taskDeleted, fetchTasks } from './store/tasksSlice'
+import { addTaskAsync, toggleTaskAsync, deleteTaskAsync, fetchTasks } from './store/tasksSlice'
 import { makeSelectVisibleTasks, selectActiveCount, selectTasks } from './store/selectors'
 import './App.css'
 
@@ -29,7 +29,7 @@ function App() {
     e.preventDefault()
     const t = text.trim()
     if (!t) return
-    dispatch(taskAdded(createTask(t)))
+    dispatch(addTaskAsync(t))
     setText('')
   }
 
@@ -81,10 +81,10 @@ function App() {
         (<li className='empty'>Ничего не найдено</li>) : visibleTasks.map(t => (
           <li key={t.id} className={`todo-item ${t.completed ? 'completed' : ''}`}>
             <label>
-              <input type="checkbox" checked={t.completed} onChange={() => toggleTask(t.id)} />
+              <input type="checkbox" checked={t.completed} onChange={() => dispatch(toggleTaskAsync(t.id))} />
               <span>{t.text}</span>
             </label>
-            <button type='button' aria-label='Удалить' onClick={() => deleteTask(t.id)}>×</button>
+            <button type='button' aria-label='Удалить' onClick={() => dispatch(deleteTaskAsync(t.id))}>×</button>
           </li>
         ))}
       </ul>

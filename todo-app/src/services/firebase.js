@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app'
 import { getAuth, signInAnonymously } from 'firebase/auth'
-import { getFirestore, collection, getDocs } from 'firebase/firestore'
+import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, serverTimestamp } from 'firebase/firestore'
 
 const firebaseConfig = {
   apiKey: 'AIzaSyANaNyO7-890eeaLQT1_aVUgAdz_eQiigM',
@@ -27,4 +27,22 @@ export async function loadTasksOnce() {
     const createdAt = data.createdAt?.toMillis ? data.createdAt.toMillis() : data.createdAt || 0
     return { id: d.id, ...data, createdAt }
   })
+}
+
+export async function addTaskRemote(uid, text) {
+  const col = collection(db, `users/${uid}/tasks`)
+  const ref = await addDoc(col, { text, completed: false, createdAt: serverTimestamp() })
+  return { id: ref.id, text, completed: false, createdAt: Date.now() }
+}
+
+export async function updateTaskRemote(uid, id, changes) {
+  const ref = doc(db, `users/${uid}/tasks/${id}`)
+  await updateDoc(ref, changes)
+  return { id, changes }
+}
+
+export async function deleteTaskRemote(uid, id) {
+  const ref = doc(db, `users/${uid}/tasks/${id}`)
+  await deleteDoc(ref)
+  return id
 }

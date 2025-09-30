@@ -1,9 +1,24 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import { loadTasksOnce } from '../services/firebase'
+import { getUserId, addTaskRemote, updateTaskRemote, deleteTaskRemote, loadTasksOnce } from '../services/firebase'
 
 export const fetchTasks = createAsyncThunk('tasks/fetch', async () => {
     const items = await loadTasksOnce()
     return items
+})
+
+export const addTaskAsync = createAsyncThunk('tasks/add', async (text) => {
+    const uid = await getUserId()
+    return await addTaskRemote(uid, text)
+})
+export const toggleTaskAsync = createAsyncThunk('tasks/toggle', async (id, { getState }) => {
+    const uid = await getUserId()
+    const t = getState().tasks.items.find(x => x.id === id)
+    return await updateTaskRemote(uid, id, { completed: !t.completed })
+})
+export const deleteTaskAsync = createAsyncThunk('tasks/delete', async (id) => {
+    const uid = await getUserId()
+    await deleteTaskRemote(uid, id)
+    return id
 })
 
 const tasksSlice = createSlice({
@@ -29,14 +44,30 @@ const tasksSlice = createSlice({
     },
     extraReducers: (builder) => {
     builder
-        .addCase(fetchTasks.pending, (state) => { state.status = 'loading' })
+        .addCase(fetchTasks.pending, (state) => {
+            state.status = 'loading' 
+        })
         .addCase(fetchTasks.fulfilled, (state, action) => {
-        state.status = 'succeeded'
-        state.items = action.payload
+            state.status = 'succeeded'
+            state.items = action.payload
         })
         .addCase(fetchTasks.rejected, (state, action) => {
-        state.status = 'failed'
-        state.error = action.error.message
+            state.status = 'failed'
+            state.error = action.error.message
+        })
+        // добавление
+        .addCase(addTaskAsync.fulfilled, (state, action) => {
+            state.items.unshift(action.payload)
+        })
+        // переключение completed
+        .addCase(toggleTaskAsync.fulfilled, (state, action) => {
+            const { id, changes } = action.payload
+            const t = state.items.find(x => x.id === id)
+            if (t) Object.assign(t, changes)
+        })
+        // удаление
+        .addCase(deleteTaskAsync.fulfilled, (state, action) => {
+            state.items = state.items.filter(x => x.id !== action.payload)
         })
     }
 })
